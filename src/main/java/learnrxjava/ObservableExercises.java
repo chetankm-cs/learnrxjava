@@ -1,7 +1,11 @@
 package learnrxjava;
 
+import learnrxjava.types.BoxArt;
+import learnrxjava.types.ComposableList;
 import learnrxjava.types.JSON;
+import learnrxjava.types.Movie;
 import learnrxjava.types.Movies;
+import learnrxjava.types.Video;
 import rx.Observable;
 
 public class ObservableExercises {
@@ -12,7 +16,8 @@ public class ObservableExercises {
      * @return "Hello World!"
      */
     public Observable<String> exerciseHello() {
-        return Observable.error(new RuntimeException("Not Implemented"));
+//        return Observable.error(new RuntimeException("Not Implemented"));
+        return Observable.just("Hello World!");
     }
 
     /**
@@ -21,7 +26,7 @@ public class ObservableExercises {
      * @param "Hello Name!"
      */
     public Observable<String> exerciseMap(Observable<String> hello) {
-        return Observable.error(new RuntimeException("Not Implemented"));
+        return hello.map(s -> s + " Chetan");
     }
 
     /**
@@ -32,7 +37,7 @@ public class ObservableExercises {
      * 6-Even
      */
     public Observable<String> exerciseFilterMap(Observable<Integer> nums) {
-        return Observable.error(new RuntimeException("Not Implemented"));
+        return nums.filter(n-> n%2==0).map(n->n+"-Even");
     }
 
     /**
@@ -42,7 +47,7 @@ public class ObservableExercises {
      * @return Observable of Integers of Movies.videos.id
      */
     public Observable<Integer> exerciseConcatMap(Observable<Movies> movies) {
-        return Observable.error(new RuntimeException("Not Implemented"));
+        return movies.concatMap(m->m.videos).map(movie -> movie.id);
     }
 
     /**
@@ -59,8 +64,11 @@ public class ObservableExercises {
      * @return Observable of Integers of Movies.videos.id
      */
     public Observable<Integer> exerciseFlatMap(Observable<Movies> movies) {
-        return Observable.error(new RuntimeException("Not Implemented"));
+//        return Observable.error(new RuntimeException("Not Implemented"));
+        Observable<Movie> videoOs = movies.flatMap(m->m.videos);
+        return videoOs.map(movie -> movie.id);
     }
+
 
     /**
      * Retrieve the largest number.
@@ -68,7 +76,7 @@ public class ObservableExercises {
      * Use reduce to select the maximum value in a list of numbers.
      */
     public Observable<Integer> exerciseReduce(Observable<Integer> nums) {
-        return Observable.error(new RuntimeException("Not Implemented"));
+        return nums.reduce((a, b) -> a > b ? a : b);
     }
 
     /**
@@ -83,7 +91,14 @@ public class ObservableExercises {
      * See Exercise 19 of ComposableListExercises
      */
     public Observable<JSON> exerciseMovie(Observable<Movies> movies) {
-        return Observable.error(new RuntimeException("Not Implemented"));
+        return movies.flatMap(ml -> ml.videos.flatMap(v -> {
+            Observable<BoxArt> boxArtObservable = v.boxarts.reduce((ba, ba1) ->
+                                                                       ba.height * ba.width
+                                                                       < ba1.height * ba1.width
+                                                                       ? ba : ba1);
+            return boxArtObservable
+                .map(boxArt -> json("id", v.id, "title", v.title, "boxart", boxArt.url));
+        }));
     }
 
     /**
@@ -94,7 +109,7 @@ public class ObservableExercises {
      * output -> "one fish", "two fish", "red fish", "blue fish"
      */
     public Observable<String> exerciseZip(Observable<String> a, Observable<String> b) {
-        return Observable.error(new RuntimeException("Not Implemented"));
+        return Observable.zip(a,b,(s, s2) -> s+" "+s2);
     }
 
     /**
@@ -102,7 +117,7 @@ public class ObservableExercises {
      * and replace it with "default-value".
      */
     public Observable<String> handleError(Observable<String> data) {
-        return Observable.error(new RuntimeException("Not Implemented"));
+        return data.onErrorResumeNext(Observable.just("default-value"));
     }
 
     /**
@@ -110,7 +125,7 @@ public class ObservableExercises {
      * with retry capability.
      */
     public Observable<String> retry(Observable<String> data) {
-        return Observable.error(new RuntimeException("Not Implemented"));
+        return data.retry();
     }
 
     // This function can be used to build JSON objects within an expression
